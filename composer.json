@@ -1,0 +1,24 @@
+{
+    "name": "kris-ro/validator",
+    "description": "Multi-rule validator for data and POST forms",
+    "type": "library",
+    "require": {
+        "php": "8.*"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "KrisRo\\Validator\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cristianradu",
+            "email": "kris_ro@yahoo.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    }
+}
