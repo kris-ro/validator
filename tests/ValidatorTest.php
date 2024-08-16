@@ -133,6 +133,68 @@ class ValidatorTest extends TestCase {
     $this->assertEquals(TRUE, $validationResult);
     $this->assertEquals(TRUE, empty($postValidator->getPostValidationMessages()));
   }
+  
+  public function testReadMeExamples() {
+    # chaining validators
+    $validator = new Validator();
+    $result = $validator
+                ->value('99z9-d_')
+                ->addValidationRule('is_string')
+                ->addValidationRule('alphanumeric')
+                ->process(); # false; only letters and numbers allowed
+    $this->assertEquals(FALSE, $result);
+    
+    $validator = new Validator();
+    $result = $validator->alphanumeric('99z9-d_'); # false; only letters and numbers allowed
+    $this->assertEquals(FALSE, $result);
+    
+    $this->assertEquals(TRUE, (new Validator())->positiveInteger(99999));
+    $this->assertEquals(FALSE, (new Validator())->positiveInteger('9999s9'));
+    $this->assertEquals(TRUE, (new Validator())->notEmptyOneLineString('def54%'));
+    $this->assertEquals(FALSE, (new Validator())->notEmptyOneLineString(''));
+    
+    $validator = new Validator();
+    $result = $validator
+            ->createRegexRule('alphanumeric', '/^[a-z0-9\-_]+$/i') # overites existing rule
+            ->value('abc_-9')
+            ->addValidationRule('alphanumeric')
+            ->process();
+    $this->assertEquals(TRUE, $result);
+    
+    $validator = new Validator(['alphanumeric' => '/^[a-z0-9\-_]+$/i']);
+    $result = $validator
+            ->value('abc_-9')
+            ->addValidationRule('alphanumeric')
+            ->process();
+    $this->assertEquals(TRUE, $result);
+    
+    $validator = new Validator();
+    $result = $validator
+            ->setDateFormat('m-d-Y')
+            ->value('2000-12-12')
+            ->addValidationRule('isValidDate') # method of the [KrisRo\Validator\Validator] class
+            ->process(); # false, wrong date format
+    $this->assertEquals(FALSE, $result);
+    
+    $_POST = [
+      'multiple_values' => ['997', '786', '665'], # will validate values recursively 
+      'id' => 'DF-999',
+    ];
+
+    $postValidator = new Validator();
+
+    $validationResult = $postValidator
+      ->addPostValidationMessages([
+        'id' => 'Invalid ID',
+        'multiple_values' => 'Invalid Multiple Values',
+      ])
+      ->addPostValidationRules([
+        'id' => ['notEmptyOneLineString'],
+        'multiple_values' => ['positiveInteger'],
+      ])
+      ->processPost();
+    $this->assertEquals(TRUE, $validationResult);
+  }
 }
 
 class TestCallback {

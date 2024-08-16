@@ -24,14 +24,14 @@ $result = $validator
             ->value('99z9-d_')
             ->addValidationRule('is_string')
             ->addValidationRule('alphanumeric')
-            ->process(); # true
+            ->process(); # false; only letters and numbers allowed
 ```
 ### Magic calls
 ```php
 # the above can be also called as :
 
 $validator = new Validator();
-$result = $validator->alphanumeric('99z9-d_'); # true
+$result = $validator->alphanumeric('99z9-d_'); # false; only letters and numbers allowed
 
 # other validation rules with magic call
 (new Validator())->positiveInteger(99999); # true
