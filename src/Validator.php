@@ -435,6 +435,10 @@ class Validator {
     return $this->postValidationMessages;
   }
   
+  public function getPost(): array {
+    return $this->post;
+  }
+  
   /**
    * Checks if specified rule exists in <code>$this->validationRules</code>
    * 
