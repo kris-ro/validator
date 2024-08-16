@@ -11,26 +11,26 @@ class Validator {
    */
   protected $dateFormat = 'Y-m-d';
   
-	/**
+  /**
    * Validation rules
    * 
    * @var array
    */
-	protected $validationRules = [
+  protected $validationRules = [
     'positiveInteger' => '/^\d+$/',
     'integer' => '/^-?\d+$/',
     'password' => '/^[a-zA-Z0-9!@#\$\|%\^&*\(\)\[\]\{\}\-\.=\s]{6,}$/',
-		'boolean' => '/^(1|0){1}$/',
-		'notEmptyOneLineString' => '/^[^\n\r]+$/',
+    'boolean' => '/^(1|0){1}$/',
+    'notEmptyOneLineString' => '/^[^\n\r]+$/',
     'positiveFloat' => '/^[0-9]+(\.[0-9]+)?$/',
     'float' => '/^-?[0-9]+(\.[0-9]+)?$/',
     'internationalPhone' => '/\+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$/',
     'alphanumeric' => '/^[0-9a-zA-Z]+$/',
     'text' => '/^.*$/is',
-		'mandatoryText' => '/^.+$/is',
+    'mandatoryText' => '/^.+$/is',
     'website' => '/^(http:\/\/)?(www\.)?([a-zA-Z0-9\-_]+\.)+[a-zA-Z]{2,5}(\/([a-zA-Z0-9=&\?\.\-_]+)?)*$/',
-		'fileName' => '/^[a-zA-Z0-9_\.\-]+$/',
-	];
+    'fileName' => '/^[a-zA-Z0-9_\.\-]+$/',
+  ];
 
   /**
    * Array with validation rules indexed by the POST field they are applied to.
@@ -106,8 +106,8 @@ class Validator {
       $value = (string) $args[0];
     }
 
-		return $this->value($value)->addValidationRule($ruleName)->process();
-	}
+    return $this->value($value)->addValidationRule($ruleName)->process();
+  }
   
   /**
    * Accepts rules to be added to <code>$this->validationRules</code>
