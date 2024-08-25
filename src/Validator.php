@@ -619,7 +619,7 @@ class Validator {
       return $rule($value ?: $this->value) ? TRUE : FALSE;
     }
     
-    return false;
+    return FALSE;
   }
 
   /**
