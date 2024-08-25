@@ -4,6 +4,10 @@ namespace KrisRo\Validator;
 
 class Validator {
 
+  const EMAIL_VALIDATOR_REGEXP = 'REGEXP';
+  const EMAIL_VALIDATOR_SIMPLIFIED = '@';
+  const EMAIL_VALIDATOR_PHP = 'PHP';
+
   /**
    * The format that will be used for date checking
    * 
@@ -17,19 +21,23 @@ class Validator {
    * @var array
    */
   protected $validationRules = [
-    'positiveInteger' => '/^\d+$/',
     'integer' => '/^-?\d+$/',
-    'password' => '/^[a-zA-Z0-9!@#\$\|%\^&*\(\)\[\]\{\}\-\.=\s]{6,}$/',
+    'positiveInteger' => '/^\d+$/',
     'boolean' => '/^(1|0){1}$/',
     'notEmptyOneLineString' => '/^[^\n\r]+$/',
-    'positiveFloat' => '/^[0-9]+(\.[0-9]+)?$/',
     'float' => '/^-?[0-9]+(\.[0-9]+)?$/',
+    'positiveFloat' => '/^[0-9]+(\.[0-9]+)?$/',
     'internationalPhone' => '/\+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$/',
     'alphanumeric' => '/^[0-9a-zA-Z]+$/',
     'text' => '/^.*$/is',
     'mandatoryText' => '/^.+$/is',
     'website' => '/^(http:\/\/)?(www\.)?([a-zA-Z0-9\-_]+\.)+[a-zA-Z]{2,5}(\/([a-zA-Z0-9=&\?\.\-_]+)?)*$/',
-    'fileName' => '/^[a-zA-Z0-9_\.\-]+$/',
+    'fileName' => '/^[a-zA-Z0-9_\.\- ]+$/',
+    'strongPassword' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#@$!%*?&^()+=\-_\[\]\';,\.\/{}|:<>?~`])[A-Za-z\d#@$!%*?&^()+=\-_\[\]\';,\.\/{}|:<>?~`]{8,}$/',
+    // from : https://stackoverflow.com/questions/201323/how-can-i-validate-an-email-address-using-a-regular-expression
+    'email' => <<<REGEXEMAIL
+               /([-!#-'*+\/-9=?A-Z^-~]+(\.[-!#-'*+\/-9=?A-Z^-~]+)*|"([]!#-[^-~ \t]|(\\[\t -~]))+")@([0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?(\.[0-9A-Za-z]([0-9A-Za-z-]{0,61}[0-9A-Za-z])?)*|\[((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|IPv6:((((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){6}|::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){5}|[0-9A-Fa-f]{0,4}::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){4}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):)?(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){3}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,2}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){2}|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,3}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,4}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::)((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3})|(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3})|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,5}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3})|(((0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}):){0,6}(0|[1-9A-Fa-f][0-9A-Fa-f]{0,3}))?::)|(?!IPv6:)[0-9A-Za-z-]*[0-9A-Za-z]:[!-Z^-~]+)])/
+               REGEXEMAIL,
   ];
 
   /**
@@ -72,7 +80,6 @@ class Validator {
    * @var array
    */
   protected $postValidationMessages = [];
-
 
   /**
    * Value to be checked
@@ -178,6 +185,11 @@ class Validator {
         return $this;
       }
 
+      if (is_string($validationRuleName[0]) && method_exists($this, $validationRuleName[0])) {
+        $this->appliedRules[] = $validationRuleName;
+        return $this;
+      }
+      
       trigger_error('Unknown validation rule', E_USER_ERROR);
     }
 
@@ -269,6 +281,9 @@ class Validator {
       if (is_callable($ruleName)) {
         $this->postFieldsValidationRules[$field][] = $ruleName;
         return $this;
+      } elseif (method_exists($this, $ruleName[0])) {
+        $this->postFieldsValidationRules[$field][] = $ruleName;
+        return $this;
       }
 
       trigger_error('Unknown validation rule', E_USER_ERROR);
@@ -319,6 +334,7 @@ class Validator {
   }
   
   /**
+   * Returns the currently used date format
    * 
    * @return string
    */
@@ -334,14 +350,222 @@ class Validator {
    * @return bool
    */
   public function isValidDate(?string $date = NULL): bool {
+    if (($date ?? $this->value) === NULL) {
+      trigger_error('Invalid date passed. Expected : ' . $this->dateFormat, E_USER_ERROR);
+    }
+
     \DateTime::createFromFormat($this->dateFormat, ($date ?: $this->value));
     $errors = \DateTime::getLastErrors();
     
     if ($errors['warning_count'] + $errors['error_count'] > 0) {
-      return false;
+      return FALSE;
     }
     
-    return true;
+    return TRUE;
+  }
+
+  public function paranoiaStrongPassword(string $value): bool {
+    if (!($value ?? $this->value)) {
+      return FALSE;
+    }
+
+    if (!preg_match($this->validationRules['strongPassword'], ($value ?? $this->value))) {
+      return FALSE;
+    }
+
+    $successiveCharacters = [];
+    $characterCount = [];
+    $totalCharacterCount = floor(strlen($value ?? $this->value) / 3);
+    
+    $lastCharacter = '';
+    foreach (mb_str_split($value ?? $this->value, 1) as $character) {
+      $characterCount[$character] = ($characterCount[$character] ?? '') . $character;
+      
+      
+      if (strlen($characterCount[$character]) > $totalCharacterCount) {
+        return FALSE;
+      }
+
+      if ($character == $lastCharacter) {
+        $successiveCharacters[$character] = ($successiveCharacters[$character] ?? '') . $lastCharacter;
+      } else {
+        $successiveCharacters[$character] = $character;
+      }
+      
+      if (strlen($successiveCharacters[$character] ?? '') > 2) {
+        return FALSE;
+      }
+      
+      $lastCharacter = $character;
+    }
+    
+    return TRUE;
+  }
+
+
+  /**
+   * Validate email address
+   * 
+   * @param string|null $emailAddress
+   * @param string|null $mode
+   * 
+   * @return bool
+   */
+  public function isValidEmail(string $mode, ?string $value = NULL): bool {
+    if (!($value ?? $this->value)) {
+      return FALSE;
+    }
+    
+    switch ($mode) {
+      case self::EMAIL_VALIDATOR_PHP;
+      case self::EMAIL_VALIDATOR_REGEXP;
+        return $this->processRule('email', $value);
+      case self::EMAIL_VALIDATOR_SIMPLIFIED:
+      case 'simplifiedEmail':
+        return $this->isSimplifiedEmail($value);
+    }
+
+    return filter_var($value, FILTER_VALIDATE_EMAIL);
+  }
+  
+  /**
+   * Validate email address (just if @ is present)
+   * 
+   * @param string|null $emailAddress
+   * 
+   * @return bool
+   */
+  public function isSimplifiedEmail(?string $emailAddress = NULL): bool {
+    if (!($emailAddress ?? $this->value)) {
+      return FALSE;
+    }
+    
+    return strpos($emailAddress, '@') !== FALSE;
+  }
+
+  /**
+   * Fails a string with length below limit
+   * 
+   * @param int $limit
+   * @param string|null $value
+   * 
+   * @return bool
+   */
+  public function minLength(int $limit, ?string $value = NULL): bool {
+    if (($value ?? $this->value) === NULL) {
+      trigger_error('No value to compare', E_USER_ERROR);
+    }
+
+    if (strlen($value ?? $this->value) >= $limit) {
+      return TRUE;
+    }
+    
+    return FALSE;
+  }
+
+  /**
+   * Fails a string with length above limit
+   * 
+   * @param int $limit
+   * @param string|null $value
+   * 
+   * @return bool
+   */
+  public function maxLength(int $limit, ?string $value = NULL): bool {
+    if (($value ?? $this->value) === NULL) {
+      trigger_error('No value to compare', E_USER_ERROR);
+    }
+
+    if (strlen($value ?? $this->value) <= $limit) {
+      return TRUE;
+    }
+    
+    return FALSE;
+  }
+
+  /**
+   * Fails a string with length different than limit
+   * 
+   * @param int $limit
+   * @param string|null $value
+   * 
+   * @return bool
+   */
+  public function isLength(int $limit, ?string $value = NULL): bool {
+    if (($value ?? $this->value) === NULL) {
+      trigger_error('No value to compare', E_USER_ERROR);
+    }
+
+    if (strlen($value ?? $this->value) == $limit) {
+      return TRUE;
+    }
+    
+    return FALSE;
+  }
+  
+  /**
+   * Fails a number greater than limit
+   * 
+   * @param float $limit
+   * @param float|null $value
+   * 
+   * @return bool
+   */
+  public function smallerThan(float $limit, ?float $value = NULL): bool {
+    if (($value ?? $this->value) === NULL) {
+      trigger_error('No value to compare', E_USER_ERROR);
+    }
+
+    if (($value ?? $this->value) < $limit) {
+      return TRUE;
+    }
+    
+    return FALSE;
+  }
+
+  /**
+   * Fails a value smaller than limit
+   * 
+   * @param float $limit
+   * @param float|null $value
+   * 
+   * @return bool
+   */
+  public function greaterThan(float $limit, ?float $value = NULL): bool {
+    if (($value ?? $this->value) === NULL) {
+      trigger_error('No value to compare', E_USER_ERROR);
+    }
+
+    if (($value ?? $this->value) > $limit) {
+      return TRUE;
+    }
+    
+    return FALSE;
+  }
+
+  /**
+   * Fails a value outside range
+   * 
+   * @param float $lowerLimit
+   * @param float $upperLimit
+   * @param float|null $value
+   * 
+   * @return bool
+   */
+  public function between(float $lowerLimit, float $upperLimit, ?float $value = NULL) {
+    if (($value ?? $this->value) === NULL) {
+      trigger_error('No value to compare', E_USER_ERROR);
+    }
+    
+    if (($value ?? $this->value) >= $upperLimit) {
+      return FALSE;
+    }
+
+    if (($value ?? $this->value) <= $lowerLimit) {
+      return FALSE;
+    }
+    
+    return TRUE;
   }
   
   /**
@@ -352,7 +576,22 @@ class Validator {
    */
   protected function processRule(string|array $rule, $value = NULL): bool {
     if (is_array($rule)) {
-      return call_user_func($rule, ($value ?: $this->value));
+      if (is_callable($rule)) {
+        return call_user_func($rule, ($value ?: $this->value));
+      }
+      
+      if (is_string($rule[0]) && method_exists($this, $rule[0])) {
+        $method = $rule[0];
+
+        $args = array_slice($rule, 1);
+        if (!$this->value) {
+          $args += ['value' => $value];
+        }
+        
+        return $this->$method(...$args);
+      }
+      
+      trigger_error('Invalid validation rule triggered at data validation', E_USER_ERROR);
     }
     
     if (isset($this->validationRules[$rule])) {
