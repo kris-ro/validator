@@ -1,6 +1,6 @@
 {
     "name": "kris-ro/validator",
-    "description": "Multi-rule validator for data and POST forms",
+    "description": "PHP chainable multi-rule validator for data and POST forms",
     "type": "library",
     "require": {
         "php": "8.*"

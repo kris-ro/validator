@@ -1,4 +1,4 @@
-# Validator
+# PHP Validator
 
 Simple class for validating data and POST forms
 
