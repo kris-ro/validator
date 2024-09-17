@@ -82,6 +82,13 @@ class Validator {
   protected $postValidationMessages = [];
 
   /**
+   * Messages displayed to users on validation failure
+   * 
+   * @var array
+   */
+  protected $postFieldsValidationRulesMessages = [];
+
+  /**
    * Value to be checked
    * 
    * @var mixt
@@ -357,7 +364,11 @@ class Validator {
     \DateTime::createFromFormat($this->dateFormat, ($date ?: $this->value));
     $errors = \DateTime::getLastErrors();
     
-    if ($errors['warning_count'] + $errors['error_count'] > 0) {
+    if (!$errors) {
+      return TRUE;
+    }
+
+    if (($errors['warning_count'] ?? 0) + ($errors['error_count'] ?? 0) > 0) {
       return FALSE;
     }
     
