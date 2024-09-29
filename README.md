@@ -269,6 +269,33 @@ $postValidator->getPostValidationMessages();
 $postValidator->getPost();
 ```
 
+### Validate POST forms with optional data
+```php
+$_POST = [
+  'multiple_values' => [], # will validate optional values  
+  'id' => 'DF-999',
+];
+
+$postValidator = new Validator();
+
+$validationResult = $postValidator
+  ->addPostValidationMessages([
+    'id' => 'Invalid ID',
+    'multiple_values' => 'Invalid Multiple Values',
+  ])
+  ->addPostValidationRules([
+    'id' => ['notEmptyOneLineString'],
+    'multiple_values' => ['positiveInteger', 'isOptional'],
+  ])
+  ->processPost(); # boolean
+
+# Get error messages indexed by the field name
+$postValidator->getPostValidationMessages();
+
+# Get validated data, returns array indexed by the field name
+$postValidator->getPost();
+```
+
 ## Inheritance
 This class can be extended and overwritten. Almost all methods and properties are public or protected.
 

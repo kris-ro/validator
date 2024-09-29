@@ -310,6 +310,10 @@ class Validator {
     } elseif (function_exists($ruleName)) {
       $this->postFieldsValidationRules[$field][] = $ruleName;
       return $this;
+
+    } elseif ('isOptional' == $ruleName) {
+      $this->postFieldsValidationRules[$field][] = $ruleName;
+      return $this;
     }
 
     trigger_error('Unknown validation rule', E_USER_ERROR);
@@ -673,6 +677,14 @@ class Validator {
   public function validatePost(string $field, array $rules): bool {
     if (!isset($_POST[$field])) {
       return FALSE;
+    }
+ 
+    // if marked as optional value, return TRUE if field empty
+    if (in_array('isOptional', $rules)) {
+      if (empty($_POST[$field])) {
+        return TRUE;
+      }
+      unset($rules[current(array_keys($rules, 'isOptional'))]);
     }
 
     foreach ($rules as $rule) {

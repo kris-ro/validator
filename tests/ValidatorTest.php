@@ -299,6 +299,44 @@ class ValidatorTest extends TestCase {
     $this->assertEquals(TRUE, count($postValidator->getPostValidationMessages()) === 2);
   }
   
+  public function testOptionalPostField() {
+    $_POST = [
+      'optional_multiple_values' => ['997', '786', '665'], # will validate values recursively 
+      'id' => 'DF-999',
+    ];
+
+    $postValidator = new Validator();
+
+    $validationResult = $postValidator
+      ->addPostValidationMessages([
+        'id' => 'Invalid ID',
+        'optional_multiple_values' => 'Invalid Multiple Values',
+      ])
+      ->addPostValidationRules([
+        'id' => ['notEmptyOneLineString'],
+        'optional_multiple_values' => ['positiveInteger', 'isOptional'],
+      ])
+      ->processPost();
+    $this->assertEquals(TRUE, $validationResult);
+
+    $_POST = [
+      'optional_multiple_values' => [], # optional field 
+      'id' => 'DF-999',
+    ];
+
+    $validationResult = $postValidator
+      ->addPostValidationMessages([
+        'id' => 'Invalid ID',
+        'optional_multiple_values' => 'Invalid Multiple Values',
+      ])
+      ->addPostValidationRules([
+        'id' => ['notEmptyOneLineString'],
+        'optional_multiple_values' => ['positiveInteger', 'isOptional'],
+      ])
+      ->processPost();
+    $this->assertEquals(TRUE, $validationResult);
+  }
+
   public function testValidEmail() {
     $this->assertEquals(TRUE, (new Validator())->email('some-email@domain.tld'));
     $this->assertEquals(TRUE, (new Validator())->value('some-email@domain.tld')->addValidationRule('is_string')->addValidationRule('email')->process());
