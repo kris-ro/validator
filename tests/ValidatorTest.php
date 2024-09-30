@@ -198,6 +198,8 @@ class ValidatorTest extends TestCase {
 
     $_POST = [
       'boolean_collection' => ['brand' => 0, 'model' => '1', 'width' => 0, 'height' => 1], # will validate values recursively 
+      'optional_boolean_collection' => [], # will validate values recursively 
+//      'missing_boolean_collection' => [], # will validate values recursively 
       'id' => 'DF-999',
     ];
 
@@ -207,10 +209,14 @@ class ValidatorTest extends TestCase {
       ->addPostValidationMessages([
         'id' => 'Invalid ID',
         'boolean_collection' => 'Invalid Multiple Boolean Values',
+        'boolean_optional_collection' => 'Invalid Multiple Boolean Values',
+        'missing_boolean_collection' => 'Invalid Multiple Boolean Values',
       ])
       ->addPostValidationRules([
         'id' => ['notEmptyOneLineString'],
         'boolean_collection' => ['boolean'],
+        'boolean_optional_collection' => ['boolean', 'isOptional'],
+        'missing_boolean_collection' => ['boolean', 'isOptional'],
       ])
       ->processPost();
     $this->assertEquals(TRUE, $validationResult);

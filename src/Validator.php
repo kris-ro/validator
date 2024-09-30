@@ -655,7 +655,7 @@ class Validator {
 
     foreach ($this->postFieldsValidationRules as $field => $rules) {
       if ($this->validatePost($field, $rules)) {
-        $this->post[$field] = $_POST[$field];
+        $this->post[$field] = $_POST[$field] ?? NULL;
       } else {
         $this->postValidationMessages[$field] = $this->postFieldsValidationRulesMessages[$field];
         $this->postValid = FALSE;
@@ -675,16 +675,17 @@ class Validator {
    * @return bool
    */
   public function validatePost(string $field, array $rules): bool {
-    if (!isset($_POST[$field])) {
-      return FALSE;
-    }
- 
     // if marked as optional value, return TRUE if field empty
     if (in_array('isOptional', $rules)) {
       if (empty($_POST[$field])) {
         return TRUE;
       }
       unset($rules[current(array_keys($rules, 'isOptional'))]);
+    }
+
+    // not optional
+    if (!isset($_POST[$field])) {
+      return FALSE;
     }
 
     foreach ($rules as $rule) {
