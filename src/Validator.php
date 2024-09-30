@@ -634,7 +634,7 @@ class Validator {
     }
 
     if (function_exists($rule)) {
-      return $rule($value ?: $this->value) ? TRUE : FALSE;
+      return $rule($value ?? $this->value) ? TRUE : FALSE;
     }
 
     return FALSE;
