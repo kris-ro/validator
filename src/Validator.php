@@ -615,8 +615,8 @@ class Validator {
     if (isset($this->validationRules[$rule])) {
       // $this->value needs to be string
       // $this->validationRules contains regex patterns used with preg_match
-      if (is_string(($value ?? $this->value))) {
-        return preg_match($this->validationRules[$rule], ($value ?? $this->value)) ? TRUE : FALSE;
+      if (is_string(($value ?? $this->value)) || is_int(($value ?? $this->value))) {
+        return preg_match($this->validationRules[$rule], (string) ($value ?? $this->value)) ? TRUE : FALSE;
 
       } elseif (is_array(($value ?: $this->value))) {
         foreach (($value ?: $this->value) as $iterationValue) {

@@ -193,6 +193,28 @@ class ValidatorTest extends TestCase {
       ])
       ->processPost();
     $this->assertEquals(TRUE, $validationResult);
+
+
+
+    $_POST = [
+      'boolean_collection' => ['brand' => 0, 'model' => '1', 'width' => 0, 'height' => 1], # will validate values recursively 
+      'id' => 'DF-999',
+    ];
+
+    $postValidator = new Validator();
+
+    $validationResult = $postValidator
+      ->addPostValidationMessages([
+        'id' => 'Invalid ID',
+        'boolean_collection' => 'Invalid Multiple Boolean Values',
+      ])
+      ->addPostValidationRules([
+        'id' => ['notEmptyOneLineString'],
+        'boolean_collection' => ['boolean'],
+      ])
+      ->processPost();
+    $this->assertEquals(TRUE, $validationResult);
+
   }
 
   public function testStringLength() {
