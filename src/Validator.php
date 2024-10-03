@@ -118,6 +118,8 @@ class Validator {
       return FALSE;
     }
 
+    $this->appliedRules = [];
+
     $value = $args[0];
     if (isset($this->validationRules[$ruleName])) {
       $value = (string) $args[0];

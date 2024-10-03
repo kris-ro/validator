@@ -7,9 +7,14 @@ use KrisRo\Validator\CracklibCheck;
 class ValidatorTest extends TestCase {
   
   public function testvalidatorAgainstData() {
-    $this->assertEquals(TRUE, (new Validator())->positiveInteger(9999));
+
+    $validator = new Validator();
+    $this->assertEquals(TRUE, $validator->positiveInteger(9999));
+    $this->assertEquals(TRUE, $validator->alphanumeric('ABC'));
+
+    $this->assertEquals(TRUE, $validator->positiveInteger(9999));
     
-    $this->assertEquals(TRUE, (new Validator())->positiveInteger('9999'));
+    $this->assertEquals(TRUE, $validator->positiveInteger('9999'));
     
     $this->assertEquals(TRUE, (new Validator(['alphanumeric' => '/^[a-z0-9\-_]+$/i']))
                                       ->value('99z9-d_')
