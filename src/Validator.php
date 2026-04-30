@@ -51,6 +51,11 @@ class Validator {
   protected $postFieldsValidationRules = [];
 
   /**
+   * Array with validation rules indexed by the FILE field they are applied to.
+   */
+  protected $fileFieldsValidationRules = [];
+
+  /**
    * Messages for failed POST filed validation
    * <code>
    * ['field_name' => 'Invalid field message', 'another_field_name' => 'Invalid field message']
@@ -449,6 +454,37 @@ class Validator {
   }
 
   /**
+   * Validate file input
+   *
+   * @param string|null $file array
+   *
+   * @return bool|string
+   */
+  public function validFileInput(array $value): bool|string {
+    if (empty($_FILES) && empty($_POST)) {
+      return 'File is way to big. Max file size is ' . ini_get('upload_max_filesize');
+    }
+
+    if (!($value['tmp_name'] ?? null)) {
+      return 'No file was uploaded';
+    }
+
+    if (!isset($value['error'])) {
+      return 'Unknown upload error';
+    }
+
+    if ($value['error'] != UPLOAD_ERR_OK) {
+      return 'Error: ' . $this->errorMessage($value['error']);
+    }
+
+    if (isset($value['size']) && $value['size'] == 0) {
+      return 'File is way to big. Max file size is ' . ini_get('upload_max_filesize');
+    }
+
+    return true;
+  }
+
+  /**
    * Validate email address (just if @ is present)
    *
    * @param string|null $emailAddress
@@ -643,6 +679,43 @@ class Validator {
   }
 
   /**
+   * Validates file input against rule
+   *
+   * @param string|array $rule
+   * @return bool|string
+   */
+  protected function processFileRule(string|array $rule, $value = NULL): bool|string {
+    if (is_array($rule)) {
+      if (is_callable($rule)) {
+        return call_user_func($rule, ($value ?: $this->value), $this->post, $this->postValidationMessages);
+      }
+
+      if (is_string($rule[0]) && method_exists($this, $rule[0])) {
+        $method = $rule[0];
+
+        $args = array_slice($rule, 1);
+        if (!$this->value) {
+          $args += ['value' => $value];
+        }
+
+        return $this->$method(...$args);
+      }
+
+      trigger_error('Invalid validation rule triggered at data validation', E_USER_ERROR);
+    }
+
+    if (method_exists($this, $rule)) {
+      return $this->$rule($value) ? TRUE : FALSE;
+    }
+
+    if (function_exists($rule)) {
+      return $rule($value ?? $this->value) ? TRUE : FALSE;
+    }
+
+    return FALSE;
+  }
+
+  /**
    * Validate POST form
    *
    * @return bool
@@ -655,9 +728,21 @@ class Validator {
       $this->postValid = TRUE;
     }
 
+    $this->setupFiles();
+
     foreach ($this->postFieldsValidationRules as $field => $rules) {
       if ($this->validatePost($field, $rules)) {
         $this->post[$field] = $_POST[$field] ?? NULL;
+      } else {
+        $this->postValidationMessages[$field] = $this->postFieldsValidationRulesMessages[$field];
+        $this->postValid = FALSE;
+        $this->post = [];
+      }
+    }
+
+    foreach ($this->fileFieldsValidationRules as $field => $rules) {
+      if ($this->validateFile($field, $rules)) {
+        $this->post[$field] = $_FILES[$field] ?? NULL;
       } else {
         $this->postValidationMessages[$field] = $this->postFieldsValidationRulesMessages[$field];
         $this->postValid = FALSE;
@@ -701,6 +786,41 @@ class Validator {
   }
 
   /**
+   * Validate form file field
+   *
+   * @param string $field
+   * @param array $rules
+   *
+   * @return bool
+   */
+  public function validateFile(string $field, array $rules): bool {
+    // if marked as optional value, return TRUE if field empty
+    if (in_array('isOptional', $rules)) {
+      if (empty($_FILES[$field]['name'])) {
+        return TRUE;
+      }
+
+      unset($rules[current(array_keys($rules, 'isOptional'))]);
+    }
+
+    // not optional
+    if (!isset($_FILES[$field])) {
+      return FALSE;
+    }
+
+    foreach ($rules as $rule) {
+      $this->value = NULL;
+
+      if (($message = $this->processFileRule($rule, $_FILES[$field])) !== TRUE) {
+        is_string($message) ? $this->setPostValidationMessage($field, $message) : null;
+        return FALSE;
+      }
+    }
+
+    return TRUE;
+  }
+
+  /**
    * Override the error message for post field
    *
    * @param string $field
@@ -721,6 +841,16 @@ class Validator {
   }
 
   /**
+   * Setup file input validation rules
+   */
+  protected function setupFiles(): void {
+    foreach (array_keys($_FILES) as $fieldName) {
+      $this->fileFieldsValidationRules[$fieldName] = $this->postFieldsValidationRules[$fieldName];
+      unset($this->postFieldsValidationRules[$fieldName]);
+    }
+  }
+
+  /**
    * Checks if specified rule exists in <code>$this->validationRules</code>
    *
    * @param string $validationRuleName
@@ -729,5 +859,36 @@ class Validator {
    */
   protected function isRule(string $validationRuleName): bool {
     return $validationRuleName && isset($this->validationRules[$validationRuleName]);
+  }
+
+  public function errorMessage(int $code) {
+    switch ($code) {
+      case UPLOAD_ERR_INI_SIZE:
+        $message = "The uploaded file exceeds the upload_max_filesize directive in php.ini";
+        break;
+      case UPLOAD_ERR_FORM_SIZE:
+        $message = "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form";
+        break;
+      case UPLOAD_ERR_PARTIAL:
+        $message = "The uploaded file was only partially uploaded";
+        break;
+      case UPLOAD_ERR_NO_FILE:
+        $message = "No file was uploaded";
+        break;
+      case UPLOAD_ERR_NO_TMP_DIR:
+        $message = "Missing a temporary folder";
+        break;
+      case UPLOAD_ERR_CANT_WRITE:
+        $message = "Failed to write file to disk";
+        break;
+      case UPLOAD_ERR_EXTENSION:
+        $message = "File upload stopped by extension";
+        break;
+      default:
+        $message = "Unknown upload error";
+        break;
+    }
+
+    return $message;
   }
 }
