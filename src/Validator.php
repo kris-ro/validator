@@ -51,11 +51,6 @@ class Validator {
   protected $postFieldsValidationRules = [];
 
   /**
-   * Array with validation rules indexed by the FILE field they are applied to.
-   */
-  protected $fileFieldsValidationRules = [];
-
-  /**
    * Messages for failed POST filed validation
    * <code>
    * ['field_name' => 'Invalid field message', 'another_field_name' => 'Invalid field message']
@@ -465,16 +460,16 @@ class Validator {
       return 'File is way to big. Max file size is ' . ini_get('upload_max_filesize');
     }
 
-    if (!($value['tmp_name'] ?? null)) {
-      return 'No file was uploaded';
-    }
-
     if (!isset($value['error'])) {
       return 'Unknown upload error';
     }
 
     if ($value['error'] != UPLOAD_ERR_OK) {
       return 'Error: ' . $this->errorMessage($value['error']);
+    }
+
+    if (!($value['tmp_name'] ?? null)) {
+      return 'No file was uploaded';
     }
 
     if (isset($value['size']) && $value['size'] == 0) {
@@ -728,21 +723,16 @@ class Validator {
       $this->postValid = TRUE;
     }
 
-    $this->setupFiles();
+    $fileFields = array_keys($_FILES);
 
     foreach ($this->postFieldsValidationRules as $field => $rules) {
-      if ($this->validatePost($field, $rules)) {
-        $this->post[$field] = $_POST[$field] ?? NULL;
-      } else {
-        $this->postValidationMessages[$field] = $this->postFieldsValidationRulesMessages[$field];
-        $this->postValid = FALSE;
-        $this->post = [];
-      }
-    }
-
-    foreach ($this->fileFieldsValidationRules as $field => $rules) {
-      if ($this->validateFile($field, $rules)) {
-        $this->post[$field] = $_FILES[$field] ?? NULL;
+      if (in_array($field, $fileFields) 
+            ? $this->validateFile($field, $rules) 
+            : $this->validatePost($field, $rules)
+      ) {
+        $this->post[$field] = in_array($field, $fileFields) 
+                                ? ($_FILES[$field] ?? NULL) 
+                                : ($_POST[$field] ?? NULL);
       } else {
         $this->postValidationMessages[$field] = $this->postFieldsValidationRulesMessages[$field];
         $this->postValid = FALSE;
@@ -841,16 +831,6 @@ class Validator {
   }
 
   /**
-   * Setup file input validation rules
-   */
-  protected function setupFiles(): void {
-    foreach (array_keys($_FILES) as $fieldName) {
-      $this->fileFieldsValidationRules[$fieldName] = $this->postFieldsValidationRules[$fieldName];
-      unset($this->postFieldsValidationRules[$fieldName]);
-    }
-  }
-
-  /**
    * Checks if specified rule exists in <code>$this->validationRules</code>
    *
    * @param string $validationRuleName
@@ -864,28 +844,28 @@ class Validator {
   public function errorMessage(int $code) {
     switch ($code) {
       case UPLOAD_ERR_INI_SIZE:
-        $message = "The uploaded file exceeds the upload_max_filesize directive in php.ini";
+        $message = 'The uploaded file exceeds the upload_max_filesize directive in php.ini';
         break;
       case UPLOAD_ERR_FORM_SIZE:
-        $message = "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form";
+        $message = 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form';
         break;
       case UPLOAD_ERR_PARTIAL:
-        $message = "The uploaded file was only partially uploaded";
+        $message = 'The uploaded file was only partially uploaded';
         break;
       case UPLOAD_ERR_NO_FILE:
-        $message = "No file was uploaded";
+        $message = 'No file was uploaded';
         break;
       case UPLOAD_ERR_NO_TMP_DIR:
-        $message = "Missing a temporary folder";
+        $message = 'Missing a temporary folder';
         break;
       case UPLOAD_ERR_CANT_WRITE:
-        $message = "Failed to write file to disk";
+        $message = 'Failed to write file to disk';
         break;
       case UPLOAD_ERR_EXTENSION:
-        $message = "File upload stopped by extension";
+        $message = 'File upload stopped by extension';
         break;
       default:
-        $message = "Unknown upload error";
+        $message = 'Unknown upload error';
         break;
     }
 
