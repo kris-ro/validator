@@ -608,11 +608,11 @@ class Validator {
       trigger_error('No value to compare', E_USER_ERROR);
     }
 
-    if (($value ?? $this->value) >= $upperLimit) {
+    if (($value ?? $this->value) > $upperLimit) {
       return FALSE;
     }
 
-    if (($value ?? $this->value) <= $lowerLimit) {
+    if (($value ?? $this->value) < $lowerLimit) {
       return FALSE;
     }
 
