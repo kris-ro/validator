@@ -437,8 +437,8 @@ class Validator {
     }
 
     switch ($mode) {
-      case self::EMAIL_VALIDATOR_PHP;
-      case self::EMAIL_VALIDATOR_REGEXP;
+      case self::EMAIL_VALIDATOR_PHP:
+      case self::EMAIL_VALIDATOR_REGEXP:
         return $this->processRule('email', $value);
       case self::EMAIL_VALIDATOR_SIMPLIFIED:
       case 'simplifiedEmail':
