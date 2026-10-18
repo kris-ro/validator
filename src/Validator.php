@@ -162,7 +162,7 @@ class Validator {
    */
   public function createRegexRule(string $ruleName, string $regexExpression): self {
     if (!preg_match('/^[a-z0-9\-_]+$/i', $ruleName) || !is_string($regexExpression)) {
-      trigger_error('Invalid validation rule. Should be: ["rule_name" => "regex expression"]', E_USER_ERROR);
+      throw new \InvalidArgumentException('Invalid validation rule. Should be: ["rule_name" => "regex expression"]');
     }
 
     $this->validationRules[$ruleName] = $regexExpression;
@@ -202,7 +202,7 @@ class Validator {
         return $this;
       }
 
-      trigger_error('Unknown validation rule', E_USER_ERROR);
+      throw new \InvalidArgumentException('Unknown validation rule: ' . print_r($validationRuleName, true));
     }
 
     if ($this->isRule($validationRuleName)) {
@@ -218,7 +218,7 @@ class Validator {
       return $this;
     }
 
-    trigger_error('Unknown validation rule', E_USER_ERROR);
+    throw new \InvalidArgumentException('Unknown validation rule: ' . print_r($validationRuleName, true));
   }
 
   public function addPostValidationMessages(array $fieldMessages): self {
@@ -248,7 +248,7 @@ class Validator {
    */
   public function addPostValidationRules(array $fieldsRules): self {
     if (array_diff(array_keys($this->postFieldsValidationRulesMessages), array_keys($fieldsRules))) {
-      trigger_error('Fields missmatch between messages and validation rules', E_USER_ERROR);
+      throw new \DomainException('Fields missmatch between messages and validation rules');
     }
 
     $this->postFieldsValidationRules = [];
@@ -298,7 +298,7 @@ class Validator {
         return $this;
       }
 
-      trigger_error('Unknown validation rule', E_USER_ERROR);
+      throw new \InvalidArgumentException('Unknown validation rule: ' . print_r($ruleName, true));
     }
 
     if ($this->isRule($ruleName)) {
@@ -318,7 +318,7 @@ class Validator {
       return $this;
     }
 
-    trigger_error('Unknown validation rule', E_USER_ERROR);
+    throw new \InvalidArgumentException('Unknown validation rule: ' . print_r($ruleName, true));
   }
 
   /**
@@ -367,7 +367,7 @@ class Validator {
    */
   public function isValidDate(?string $date = NULL): bool {
     if (($date ?? $this->value) === NULL) {
-      trigger_error('Invalid date passed. Expected : ' . $this->dateFormat, E_USER_ERROR);
+      throw new \InvalidArgumentException('Invalid date passed. Passed: ' . (($date ?? $this->value) ?? '') . '. Expected : ' . $this->dateFormat);
     }
 
     \DateTime::createFromFormat($this->dateFormat, ($date ?: $this->value));
@@ -504,7 +504,7 @@ class Validator {
    */
   public function minLength(int $limit, ?string $value = NULL): bool {
     if (($value ?? $this->value) === NULL) {
-      trigger_error('No value to compare', E_USER_ERROR);
+      throw new \DomainException('No value to compare');
     }
 
     if (strlen($value ?? $this->value) >= $limit) {
@@ -524,7 +524,7 @@ class Validator {
    */
   public function maxLength(int $limit, ?string $value = NULL): bool {
     if (($value ?? $this->value) === NULL) {
-      trigger_error('No value to compare', E_USER_ERROR);
+      throw new \DomainException('No value to compare');
     }
 
     if (strlen($value ?? $this->value) <= $limit) {
@@ -544,7 +544,7 @@ class Validator {
    */
   public function isLength(int $limit, ?string $value = NULL): bool {
     if (($value ?? $this->value) === NULL) {
-      trigger_error('No value to compare', E_USER_ERROR);
+      throw new \DomainException('No value to compare');
     }
 
     if (strlen($value ?? $this->value) == $limit) {
@@ -564,7 +564,7 @@ class Validator {
    */
   public function smallerThan(float $limit, ?float $value = NULL): bool {
     if (($value ?? $this->value) === NULL) {
-      trigger_error('No value to compare', E_USER_ERROR);
+      throw new \DomainException('No value to compare');
     }
 
     if (($value ?? $this->value) < $limit) {
@@ -584,7 +584,7 @@ class Validator {
    */
   public function greaterThan(float $limit, ?float $value = NULL): bool {
     if (($value ?? $this->value) === NULL) {
-      trigger_error('No value to compare', E_USER_ERROR);
+      throw new \DomainException('No value to compare');
     }
 
     if (($value ?? $this->value) > $limit) {
@@ -605,7 +605,7 @@ class Validator {
    */
   public function between(float $lowerLimit, float $upperLimit, ?float $value = NULL) {
     if (($value ?? $this->value) === NULL) {
-      trigger_error('No value to compare', E_USER_ERROR);
+      throw new \DomainException('No value to compare');
     }
 
     if (($value ?? $this->value) > $upperLimit) {
@@ -642,7 +642,7 @@ class Validator {
         return $this->$method(...$args);
       }
 
-      trigger_error('Invalid validation rule triggered at data validation', E_USER_ERROR);
+      throw new \DomainException('Invalid validation rule triggered at data validation');
     }
 
     if (isset($this->validationRules[$rule])) {
@@ -696,7 +696,7 @@ class Validator {
         return $this->$method(...$args);
       }
 
-      trigger_error('Invalid validation rule triggered at data validation', E_USER_ERROR);
+      throw new \DomainException('Invalid validation rule triggered at data validation');
     }
 
     if (method_exists($this, $rule)) {

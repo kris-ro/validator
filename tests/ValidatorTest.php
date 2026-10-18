@@ -283,8 +283,11 @@ class ValidatorTest extends TestCase {
     $this->assertEquals(TRUE, (new Validator())->value(101.05)->between(99.2, 201));
     $this->assertEquals(TRUE, (new Validator())->between(99.2, 201, 101.05));
     
-    $this->assertEquals(FALSE, (new Validator())->value(99.2)->between(99.2, 201));
-    $this->assertEquals(FALSE, (new Validator())->between(99.2, 201, 99.2));
+    $this->assertEquals(TRUE, (new Validator())->value(99.2)->between(99.2, 201));
+    $this->assertEquals(TRUE, (new Validator())->between(99.2, 201, 99.2));
+    
+    $this->assertEquals(FALSE, (new Validator())->value(99.2)->between(99.3, 201));
+    $this->assertEquals(FALSE, (new Validator())->between(99.3, 201, 99.2));
 
     /**
      * Form values are passed as strings, 
