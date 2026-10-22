@@ -14,7 +14,7 @@ class CracklibCheck {
   
   public function __construct(?string $command = NULL) {
     if (!function_exists('proc_open')) {
-      trigger_error('Can not run cracklib-check. Make sure cracklib-runtime is available on your system and proc_open is usable.', E_USER_ERROR);
+      throw new \BadMethodCallException('Can not run cracklib-check. Make sure cracklib-runtime is available on your system and proc_open is usable.');
     }
 
     if ($command) {
@@ -31,7 +31,7 @@ class CracklibCheck {
   
   public function testPassword(string $value): bool {
     if (!is_resource($this->process)) {
-      trigger_error('Can not run cracklib-check. Make sure cracklib-runtime is available on your system and proc_open is usable.', E_USER_ERROR);
+      throw new \BadMethodCallException('Can not run cracklib-check. Make sure cracklib-runtime is available on your system and proc_open is usable.');
       return FALSE;
     }
     
@@ -44,7 +44,7 @@ class CracklibCheck {
     $return = proc_close($this->process);
 
     if ($return === -1) {
-      trigger_error('Cracklib-check execution error');
+      throw new \RuntimeException('Cracklib-check execution error');
       return FALSE;
     }
     
@@ -62,7 +62,7 @@ class CracklibCheck {
   
   protected function processResponse(): bool {
     if (!$this->result) {
-      trigger_error('Can not run cracklib-check. Make sure cracklib-runtime is available on your system and proc_open is usable.', E_USER_ERROR);
+      throw new \BadMethodCallException('Can not run cracklib-check. Make sure cracklib-runtime is available on your system and proc_open is usable.');
       return FALSE;
     }
     
